@@ -1,0 +1,26 @@
+# Optional version of the config api.
+version: 0.0.1 # Default to the latest version.
+
+# Optional database file to serve. 
+# Allowed extensions and file types [ .yml .yaml .json ].
+db-file: .mockapi.yml # Default to .mockapi.yml
+
+# The root path to db data to serve.
+db-data: /data # Default to /db
+
+# Config a route prefix.
+prefix: api # Empty by default.
+
+
+
+# The methods to allow.
+# By default, allow allow get and post methods in all endpoint.
+# Get method will return the data found in the db
+routes:
+  post:
+    - /register
+    - /:collection/create
+    - /:collection/:id/delete
+  get:
+    - /**
+      
