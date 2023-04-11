@@ -23,7 +23,7 @@ routes:
       scheduleNotification:
         followProp: notificationUrl
         timeoutInSecond: 10 # Default to 60s. Maximum time out is 5min ( 5 * 60 s )
-        notificationMethod: GET # Default to GET
+        notificationMethod: POST # Default to GET
         postDataPath: /notificationData # The db path of the notification data. require when 'notificationMethod' is set to POST.
       bodyFields:
         notificationUrl: true
