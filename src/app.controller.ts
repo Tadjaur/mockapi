@@ -1,8 +1,8 @@
 import { HttpService } from '@nestjs/axios';
-import { Controller, Get, Param, Res } from '@nestjs/common';
+import { Controller, Get, Param, Res, UnauthorizedException } from '@nestjs/common';
 import type { Response } from 'express';
 import { AppService } from './app.service';
-import type {AxiosError} from 'axios';
+import axios, {AxiosError} from 'axios';
 
 const gitApiHost = 'https://api.github.com';
 @Controller()
@@ -13,27 +13,30 @@ export class AppController {
   ) {}
 
   @Get(':githubId/:repository/*')
-  async getRepoPage(@Param() params, @Res() res: Response): Promise<void> {
+  async getRepoPage(@Param() params:Record<string, unknown>, @Res() res: Response): Promise<unknown> {
     // const config
-    this.httpService.get(
-      `${gitApiHost}/repos/${params.githubId}/${params.repository}/contents/.mockapi`,
-      {
-        headers: {
-          "Content-Type": "application/vnd.github.raw"
-        }
-      },
-    ).subscribe({
-      next(data){
-        res.status(200).send(data);
-      },
-      error(err:AxiosError){
-        res.status(err.status ?? 400).json({message: err.message, data: err.toJSON?.call({})})
+    const url = 
+      `${gitApiHost}/repos/${params.githubId}/${params.repository}/contents/.mockapi.yml`;
+
+    const config = {
+      headers: {
+        "Accept": "application/vnd.github.raw"
       }
-    });
+    }; 
+    try {
+      const response = await axios.get(url, config);
+      const data = response.data;
+      
+
+
+    } catch (err) {
+      if(err instanceof AxiosError){
+        throw new UnauthorizedException({message: err.message, data: err.toJSON?.call({})});
+      }
+    }
+
+
+    return {};
   }
 
-  @Get(':gitUser/:gitRepository')
-  getRepoConfig(): string {
-    return this.appService.getHello();
-  }
 }

@@ -3,24 +3,34 @@ version: 0.0.1 # Default to the latest version.
 
 # Optional database file to serve. 
 # Allowed extensions and file types [ .yml .yaml .json ].
-db-file: .mockapi.yml # Default to .mockapi.yml
+dbFile: .mockapi.yml # Default to db.json
 
 # The root path to db data to serve.
-db-data: /data # Default to /db
+dbDataPath: /data # Default to /
 
 # Config a route prefix.
-prefix: api # Empty by default.
-
+apiRoutePrefix: /api
 
 
 # The methods to allow.
 # By default, allow allow get and post methods in all endpoint.
 # Get method will return the data found in the db
 routes:
+  # The post filter. if defined, post request on every path other 
+  # than the provided match should return 404 ( Route not found )
   post:
-    - /register
-    - /:collection/create
-    - /:collection/:id/delete
+    - path: /pay
+      scheduleNotification:
+        followProp: notificationUrl
+        timeoutInSecond: 300 # Default to 60s. Maximum time out is 5min ( 5 * 60 s )
+        notificationMethod: POST # Default to GET
+        postDataPath: /notificationData # The db path of the notification data. require when 'notificationMethod' is set to POST.
+      bodyFields:
+        notificationUrl: true
+        1: 45
+      restrictedBody: true
+    - path: /:collection/create
+    - path: /:collection/:id/delete
+  # The get filter.
   get:
-    - /**
-      
+    - /* # default to * (accept get on every route.)
