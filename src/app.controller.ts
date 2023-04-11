@@ -1,8 +1,9 @@
 import { HttpService } from '@nestjs/axios';
-import { Controller, Get, Param, Res, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Param, Res, UnauthorizedException } from '@nestjs/common';
 import type { Response } from 'express';
 import { AppService } from './app.service';
 import axios, {AxiosError} from 'axios';
+import { ApiConfig } from './services/configuration';
 
 const gitApiHost = 'https://api.github.com';
 @Controller()
@@ -13,7 +14,7 @@ export class AppController {
   ) {}
 
   @Get(':githubId/:repository/*')
-  async getRepoPage(@Param() params:Record<string, unknown>, @Res() res: Response): Promise<unknown> {
+  async getRepoPage(@Param() params:Record<string, unknown>): Promise<unknown> {
     // const config
     const url = 
       `${gitApiHost}/repos/${params.githubId}/${params.repository}/contents/.mockapi.yml`;
@@ -24,15 +25,24 @@ export class AppController {
       }
     }; 
     try {
+      console.log('pre')
       const response = await axios.get(url, config);
-      const data = response.data;
+      console.log('pre')
       
+      const {errors, data} = ApiConfig.loadConfig(response.data);
+      console.log('post')
+      if(errors.length > 0){
+        throw new BadRequestException(errors);
+      }
+      console.log('post')
 
+      return data;
 
     } catch (err) {
       if(err instanceof AxiosError){
-        throw new UnauthorizedException({message: err.message, data: err.toJSON?.call({})});
+        throw new UnauthorizedException({message: err.message, headers: err.config.headers, url: err.config.url, data: err.response.data});
       }
+      throw err
     }
 
 

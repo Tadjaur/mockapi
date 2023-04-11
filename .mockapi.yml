@@ -6,7 +6,7 @@ version: 0.0.1 # Default to the latest version.
 dbFile: .mockapi.yml # Default to db.json
 
 # The root path to db data to serve.
-dbDataPath: /data # Default to /
+dbDataPath: data # Default to /
 
 # Config a route prefix.
 apiRoutePrefix: /api

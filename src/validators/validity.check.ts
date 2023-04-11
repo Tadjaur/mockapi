@@ -18,7 +18,7 @@ type ValidityCheckReturnType = (
  * @returns {ValidityCheckReturnType}
  */
 export function ValidityCheck(
-  handler: (value: unknown, object: unknown, propertyName: string, targetName:string) => ({message?:string, isValid:boolean}),
+  handler: (value: unknown, propertyName: string, parentClassName:string, object: unknown) => ({message?:string, isValid:boolean}),
   validationOptions?: ValidationOptions,
 ): ValidityCheckReturnType {
   return (object: Record<string, unknown>, propertyName: string) => {
