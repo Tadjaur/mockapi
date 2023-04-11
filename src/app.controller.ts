@@ -102,6 +102,7 @@ export class AppController {
           }
 
           const requestedData = await this.getRequestedData(
+            extendedPath,
             configData,
             repoRootUrl1,
             repoRootUrl2,
@@ -135,7 +136,9 @@ export class AppController {
             );
             if (notAllowedFields.length > 0) {
               throw new BadRequestException(
-                `Not allowed fields ${JSON.stringify(notAllowedFields)} provided.`,
+                `Not allowed fields ${JSON.stringify(
+                  notAllowedFields,
+                )} provided.`,
               );
             }
           }
@@ -154,6 +157,7 @@ export class AppController {
 
           // Retrieve a response.
           const requestedData = await this.getRequestedData(
+            extendedPath,
             configData,
             repoRootUrl1,
             repoRootUrl2,
@@ -164,15 +168,20 @@ export class AppController {
 
           // Basic schedule of notification if exist.
           const notificationConfig = pathConfig.scheduleNotification;
-          if(notificationConfig && requestBody[notificationConfig.followProp]){
-            const endPoint = requestBody[notificationConfig.followProp] as string;
+          if (
+            notificationConfig &&
+            requestBody[notificationConfig.followProp]
+          ) {
+            const endPoint = requestBody[
+              notificationConfig.followProp
+            ] as string;
             const url = new URL(endPoint);
             setTimeout(() => {
               axios.request({
                 method: notificationConfig.notificationMethod ?? 'GET',
                 url: url.toString(),
-                timeout: 5000, // The request will abort after 5 sec. 
-              })
+                timeout: 5000, // The request will abort after 5 sec.
+              });
             }, notificationConfig.timeoutInSecond * 1000);
           }
           return requestedData;
@@ -191,13 +200,23 @@ export class AppController {
   }
 
   private async getRequestedData(
+    extendedPath: string,
     configData: MockApiConfig,
     repoRootUrl1: string,
     repoRootUrl2: string,
   ): Promise<Record<string, unknown> | null> {
+    const dbPath = normalizePath(
+      path.join(
+        configData.dbDataPath,
+        normalizePath(extendedPath).substring(
+          normalizePath(configData.apiRoutePrefix).length,
+        ),
+      ),
+    );
+
     if (configData.dbFile == configFileName) {
       return getSubRecordFromRoot(
-        configData.dbDataPath,
+        dbPath,
         configData as unknown as Record<string, unknown>,
       );
     }
@@ -219,6 +238,6 @@ export class AppController {
     if (configErrors) {
       return null;
     }
-    return getSubRecordFromRoot(configData.dbDataPath, JSON.parse(rawData));
+    return getSubRecordFromRoot(dbPath, JSON.parse(rawData));
   }
 }

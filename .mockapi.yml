@@ -9,7 +9,7 @@ dbFile: .mockapi.yml # Default to db.json
 dbDataPath: /data # Default to /
 
 # Config a route prefix.
-apiRoutePrefix: /
+apiRoutePrefix: /api-1
 
 
 # The methods to allow.
