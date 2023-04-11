@@ -216,7 +216,7 @@ const defaultConfigValue: MockApiConfig = {
   version: '0.0.1',
   dbFile: 'db.json',
   dbDataPath: '/',
-  apiRoutePrefix: '/api',
+  apiRoutePrefix: '/',
   routes: {
     get: ['(.*)'],
   },
