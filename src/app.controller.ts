@@ -176,7 +176,14 @@ export class AppController {
             const endPoint = requestBody[
               notificationConfig.followProp
             ] as string;
-            const url = new URL(endPoint);
+            let url;
+            try {
+              url = new URL(endPoint);
+            } catch (e) {
+              throw new BadRequestException(
+                `Invalid url '${endPoint}' provided`,
+              );
+            }
             setTimeout(async () => {
               axios.request({
                 method: notificationConfig.notificationMethod ?? 'GET',
@@ -185,7 +192,7 @@ export class AppController {
                 data: !notificationConfig.postDataPath
                   ? null
                   : await getRequestedData(
-                      notificationConfig.postDataPath,
+                      path.join(configData.apiRoutePrefix, notificationConfig.postDataPath),
                       configData,
                       repoRootUrl1,
                       repoRootUrl2,

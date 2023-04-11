@@ -14,6 +14,7 @@ import {
   IsOptional,
   IsString,
   Max,
+  Min,
   ValidateNested,
   validateSync,
 } from 'class-validator';
@@ -26,6 +27,7 @@ export enum NotificationMethod {
 }
 
 const maximumNotificationDelayInSecond = 5 * 60;
+const minimumNotificationDelayInSecond = 10;
 const defaultNotificationMethod = NotificationMethod.get;
 const configVersion = '0.0.1';
 const allowedDbFileExt = new Set(['.yml', '.yaml', '.json']);
@@ -38,6 +40,7 @@ class PostNotification {
 
   /** The delay before the notification will be send to the provided end point */
   @Max(maximumNotificationDelayInSecond)
+  @Min(minimumNotificationDelayInSecond)
   @IsNumber({ allowInfinity: false, allowNaN: false, maxDecimalPlaces: 0 })
   @IsOptional()
   timeoutInSecond: number;
