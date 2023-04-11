@@ -28,7 +28,7 @@ routes:
       bodyFields:
         notificationUrl: true
       restrictedBody: true
-    - path: /:collection/create
+    - path: /:collection/create # if the collection needed is user, The default response is fetch under db path: $dbDataPath/user/create.
     - path: /:collection/:id/delete
   # The get filter.
   get:
@@ -37,3 +37,6 @@ routes:
 data: 
   user:
     - name: aurelien tadjaur
+  pay:
+    status: success
+    code: 200

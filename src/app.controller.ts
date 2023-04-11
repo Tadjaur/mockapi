@@ -156,14 +156,15 @@ export class AppController {
           }
 
           // Retrieve a response.
-          const requestedData = await this.getRequestedData(
+          const getRequestedData = this.getRequestedData;
+          const requestedData = await getRequestedData(
             extendedPath,
             configData,
             repoRootUrl1,
             repoRootUrl2,
           );
           if (!requestedData) {
-            throw new NotFoundException();
+            throw new NotFoundException('Response Mock not found');
           }
 
           // Basic schedule of notification if exist.
@@ -176,11 +177,19 @@ export class AppController {
               notificationConfig.followProp
             ] as string;
             const url = new URL(endPoint);
-            setTimeout(() => {
+            setTimeout(async () => {
               axios.request({
                 method: notificationConfig.notificationMethod ?? 'GET',
                 url: url.toString(),
                 timeout: 5000, // The request will abort after 5 sec.
+                data: !notificationConfig.postDataPath
+                  ? null
+                  : await getRequestedData(
+                      notificationConfig.postDataPath,
+                      configData,
+                      repoRootUrl1,
+                      repoRootUrl2,
+                    ),
               });
             }, notificationConfig.timeoutInSecond * 1000);
           }
@@ -205,6 +214,7 @@ export class AppController {
     repoRootUrl1: string,
     repoRootUrl2: string,
   ): Promise<Record<string, unknown> | null> {
+    console.log(configData.apiRoutePrefix);
     const dbPath = normalizePath(
       path.join(
         configData.dbDataPath,
