@@ -40,3 +40,5 @@ data:
   pay:
     status: success
     code: 200
+  notificationData:
+    paymentStatus: SuccessFul
