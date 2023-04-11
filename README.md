@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="/assets/logo.png" width="200" alt="Mock Api Logo" />
+  <img src="https://raw.githubusercontent.com/Tadjaur/mockapi/main/assets/logo.png" width="200" alt="Mock Api Logo" />
 </p>
 
 [circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
