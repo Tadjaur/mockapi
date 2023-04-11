@@ -15,7 +15,7 @@ apiRoutePrefix: /
 # The methods to allow.
 # By default, allow allow get and post methods in all endpoint.
 # Get method will return the data found in the db
-routes:
+# routes:
   # The post filter. if defined, post request on every path other 
   # than the provided match should return 404 ( Route not found )
   # post:
@@ -31,5 +31,5 @@ routes:
   #   - path: /:collection/create
   #   - path: /:collection/:id/delete
   # The get filter.
-  get:
-    - /(.*) # default to * (accept get on every route.)
+  # get:
+  #   - /(.*) # default to * (accept get on every route.)
