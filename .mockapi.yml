@@ -6,7 +6,7 @@ version: 0.0.1 # Default to the latest version.
 dbFile: .mockapi.yml # Default to db.json
 
 # The root path to db data to serve.
-dbDataPath: data # Default to /
+dbDataPath: /data # Default to /
 
 # Config a route prefix.
 apiRoutePrefix: /api
@@ -27,7 +27,6 @@ routes:
         postDataPath: /notificationData # The db path of the notification data. require when 'notificationMethod' is set to POST.
       bodyFields:
         notificationUrl: true
-        1: 45
       restrictedBody: true
     - path: /:collection/create
     - path: /:collection/:id/delete

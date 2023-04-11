@@ -47,7 +47,7 @@ export class ValidityCheckConstraint implements ValidatorConstraintInterface {
    */
   validate(value: unknown, args: ValidationArguments): boolean {
     const [handler] = args.constraints;
-    const {message, isValid} = handler(value, args.object, args.property, args.targetName);
+    const {message, isValid} = handler(value, args.property, args.targetName, args.object);
     this.message = message;
     return isValid;
   }

@@ -1,15 +1,12 @@
-import { Injectable, ValidationError } from '@nestjs/common';
+import { Inject, Injectable, ValidationError } from '@nestjs/common';
 import * as yaml from 'js-yaml';
 import {
-  plainToClass,
   plainToInstance,
-  Transform,
   Type,
 } from 'class-transformer';
 import {
   ArrayNotEmpty,
   ArrayUnique,
-  IsAlphanumeric,
   IsArray,
   IsBoolean,
   IsEnum,
@@ -20,14 +17,13 @@ import {
   IsOptional,
   IsString,
   Max,
-  MinLength,
   ValidateNested,
   validateSync,
 } from 'class-validator';
 import { ValidityCheck } from 'src/validators/validity.check';
 import * as path from 'path';
 
-enum NotificationMethod {
+export enum NotificationMethod {
   post = 'POST',
   get = 'GET',
 }
@@ -100,7 +96,7 @@ class PostApi {
       }
       return {
         isValid: false,
-        message: `Invalid '${propertyName}' property from ${parentClassName}. '${key}' should be a string and '${value}' have to be a boolean`,
+        message: `Invalid '${propertyName}' property from ${parentClassName}. <${key}> should be a string and <${value}> have to be a boolean`,
       };
     }
     return { isValid: true };
@@ -206,7 +202,7 @@ class MockApiConfig {
   routes?: RouteConfig;
 }
 
-const defaultConfigFile: MockApiConfig = {
+const defaultConfigValue: MockApiConfig = {
   version: '0.0.1',
   dbFile: 'db.json',
   dbDataPath: '/',
@@ -223,18 +219,14 @@ export class ApiConfig {
     errors: ValidationError[];
   } {
     const configRaw = yaml.load(fileContain) as Record<string, unknown>;
-    console.log('_pre');
-    const validatedConfig = plainToClass(MockApiConfig, configRaw, {
+    const validatedConfig = plainToInstance(MockApiConfig, configRaw, {
       enableImplicitConversion: true,
     });
-    console.log('_pre');
     const errors = validateSync(validatedConfig, {
-      // const errors = validateSync(validatedConfig, {
       skipMissingProperties: false,
       forbidUnknownValues: true,
     });
-    console.log('_post');
 
-    return { data: validatedConfig, errors };
+    return { data: {...defaultConfigValue, ...validatedConfig}, errors };
   }
 }
