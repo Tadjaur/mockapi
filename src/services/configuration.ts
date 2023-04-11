@@ -1,4 +1,4 @@
-import { Inject, Injectable, ValidationError } from '@nestjs/common';
+import { Logger, Injectable, ValidationError } from '@nestjs/common';
 import * as yaml from 'js-yaml';
 import { plainToInstance, Transform, Type } from 'class-transformer';
 import {
@@ -69,6 +69,7 @@ class PostNotification {
     }
     return { isValid: true };
   })
+  @IsOptional()
   postDataPath: string;
 }
 export class PostApi {
@@ -123,6 +124,10 @@ class RouteConfig {
   @Type(() => PostApi)
   post?: PostApi[];
 
+  /**
+   * The map regexp of authorized get route. please see  [path-to-regexp](https://www.npmjs.com/package/path-to-regexp)
+   * which is the regex parser we use.
+   */
   @ArrayUnique()
   @IsArray()
   @IsOptional()
@@ -132,7 +137,7 @@ class RouteConfig {
 /**
  * The mock api class representation.
  */
-class MockApiConfig {
+export class MockApiConfig {
   /** The version of the api. Useful if we have a breaking update */
   @ValidityCheck((prop) => {
     const versionSegments = `${prop}`.split('.');
@@ -220,6 +225,14 @@ export class ApiConfig {
     data: MockApiConfig;
     errors: ValidationError[];
   } {
+    const defaultInstance = plainToInstance(MockApiConfig, defaultConfigValue, {
+      enableImplicitConversion: true,
+    });
+
+    if (!fileContain) {
+      Logger.warn('Falsy string provided as file contain. Falling back to default config.')
+      return { data: defaultInstance, errors: [] };
+    }
     const configRaw = yaml.load(fileContain) as Record<string, unknown>;
     const validatedConfig = plainToInstance(MockApiConfig, configRaw, {
       enableImplicitConversion: true,
@@ -229,15 +242,12 @@ export class ApiConfig {
       forbidUnknownValues: true,
     });
 
-    const defaultInstance = plainToInstance(MockApiConfig, defaultConfigValue, {
-      enableImplicitConversion: true,
-    });
     return {
       data: {
         ...defaultInstance,
         routes: {
-          post: validatedConfig.routes.post ?? defaultInstance.routes.post,
-          get: validatedConfig.routes.get ?? defaultInstance.routes.get,
+          post: validatedConfig?.routes?.post ?? defaultInstance.routes.post,
+          get: validatedConfig?.routes?.get ?? defaultInstance.routes.get,
         },
         ...validatedConfig,
       },
