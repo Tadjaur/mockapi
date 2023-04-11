@@ -90,7 +90,6 @@ export class AppController {
             end: true,
           });
           const matches = locationRegexp.exec(`/${extendedPath}`);
-          console.log(`matches ${matches}`);
           if (!matches) {
             continue;
           }
