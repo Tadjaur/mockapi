@@ -20,6 +20,7 @@ import { getSubRecordFromRoot } from './utils/util';
 import axios from 'axios';
 import type { Request } from 'express';
 
+const defaultNotificationTimeout = 60;
 const configFileName = '.mockapi.yml';
 const gitApiHost = 'https://api.github.com';
 const gitRowHost = 'https://raw.githubusercontent.com';
@@ -194,7 +195,7 @@ export class AppController {
                       repoRootUrl2,
                     ),
               });
-            }, notificationConfig.timeoutInSecond * 1000);
+            }, (notificationConfig.timeoutInSecond ?? defaultNotificationTimeout) * 1000);
           }
           return requestedData;
         }
