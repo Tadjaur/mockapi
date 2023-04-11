@@ -1,9 +1,6 @@
 import { Inject, Injectable, ValidationError } from '@nestjs/common';
 import * as yaml from 'js-yaml';
-import {
-  plainToInstance,
-  Type,
-} from 'class-transformer';
+import { plainToInstance, Transform, Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
   ArrayUnique,
@@ -64,14 +61,17 @@ class PostNotification {
     if (notificationMethod == NotificationMethod.get) {
       return { isValid: true };
     }
-    if(`${val}`.length == 0 || !path.isAbsolute(`${val}`)){
-    return {isValid: false, message: `Invalid value for field ${parentName}.${name}. Absolute db path is required.`}
+    if (`${val}`.length == 0 || !path.isAbsolute(`${val}`)) {
+      return {
+        isValid: false,
+        message: `Invalid value for field ${parentName}.${name}. Absolute db path is required.`,
+      };
     }
     return { isValid: true };
   })
   postDataPath: string;
 }
-class PostApi {
+export class PostApi {
   /** The path regex to this route. */
   @IsNotEmpty()
   @IsString()
@@ -101,9 +101,9 @@ class PostApi {
     }
     return { isValid: true };
   })
-  @IsBoolean({each:true})
   @IsObject()
   @IsOptional()
+  @Transform(({ value }) => Object(value))
   bodyFields?: Record<string, boolean>;
 
   /**
@@ -118,14 +118,12 @@ class PostApi {
 class RouteConfig {
   @ValidateNested()
   @ArrayUnique()
-  @ArrayNotEmpty()
   @IsArray()
   @IsOptional()
   @Type(() => PostApi)
   post?: PostApi[];
 
   @ArrayUnique()
-  @ArrayNotEmpty()
   @IsArray()
   @IsOptional()
   get?: string[];
@@ -167,9 +165,12 @@ class MockApiConfig {
 
   /** The database file to use. In order to have several compatibility we support both yml and json file. */
   @ValidityCheck((prop) => {
-    const extension = path.extname(`${prop}`)
-    if(!allowedDbFileExt.has(extension)){
-    return {isValid: false, message: `Invalid db extension '${extension}' provided.`};
+    const extension = path.extname(`${prop}`);
+    if (!allowedDbFileExt.has(extension)) {
+      return {
+        isValid: false,
+        message: `Invalid db extension '${extension}' provided.`,
+      };
     }
     return { isValid: true };
   })
@@ -178,8 +179,11 @@ class MockApiConfig {
   dbFile?: string;
 
   @ValidityCheck((prop) => {
-    if(!path.isAbsolute(`${prop}`)){
-    return {isValid: false, message: `Invalid db data path ${prop}. absolute path is required.`};
+    if (!path.isAbsolute(`${prop}`)) {
+      return {
+        isValid: false,
+        message: `Invalid db data path ${prop}. absolute path is required.`,
+      };
     }
     return { isValid: true };
   })
@@ -190,23 +194,21 @@ class MockApiConfig {
   @IsString()
   @IsNotEmpty()
   @IsOptional()
-  apiRoutePrefix?: string;
+  apiRoutePrefix: string;
 
   @ValidateNested()
   @IsNotEmptyObject()
   @IsObject()
   @IsOptional()
-  @Type(({ property, object }) => {
-    return RouteConfig;
-  })
-  routes?: RouteConfig;
+  @Type(() => RouteConfig)
+  routes: RouteConfig;
 }
 
 const defaultConfigValue: MockApiConfig = {
   version: '0.0.1',
   dbFile: 'db.json',
   dbDataPath: '/',
-  apiRoutePrefix: '/',
+  apiRoutePrefix: '/api',
   routes: {
     get: ['*'],
   },
@@ -227,6 +229,19 @@ export class ApiConfig {
       forbidUnknownValues: true,
     });
 
-    return { data: {...defaultConfigValue, ...validatedConfig}, errors };
+    const defaultInstance = plainToInstance(MockApiConfig, defaultConfigValue, {
+      enableImplicitConversion: true,
+    });
+    return {
+      data: {
+        ...defaultInstance,
+        routes: {
+          post: validatedConfig.routes.post ?? defaultInstance.routes.post,
+          get: validatedConfig.routes.get ?? defaultInstance.routes.get,
+        },
+        ...validatedConfig,
+      },
+      errors,
+    };
   }
 }

@@ -6,11 +6,20 @@ import {
   Param,
   All,
   Req,
-  MethodNotAllowedException
+  MethodNotAllowedException,
+  NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { AppService } from './app.service';
-import { ApiConfig, NotificationMethod } from './services/configuration';
+import {
+  ApiConfig,
+  NotificationMethod,
+  PostApi,
+} from './services/configuration';
 import { getRawFile } from './utils/get-raw-file';
+import type { Request } from 'express';
+import {pathToRegexp} from 'path-to-regexp';
+import * as path from 'path';
 
 const gitApiHost = 'https://api.github.com';
 const gitRowHost = 'https://raw.githubusercontent.com';
@@ -26,11 +35,6 @@ export class AppController {
     @Param() params: Record<string, unknown>,
     @Req() req: Request,
   ): Promise<unknown> {
-    const authorizedMethods = Object.values(NotificationMethod);
-    
-    if(!authorizedMethods.find(e => e == req.method.toUpperCase())){
-      throw new MethodNotAllowedException();
-    }
     const rawOnlyUrl = `${gitRowHost}/${params.githubId}/${params.repository}/${params.branch}/.mockapi.yml`;
     const { error, rawData } = await getRawFile(rawOnlyUrl, {});
     let rawFile = rawData;
@@ -59,9 +63,52 @@ export class AppController {
       throw new BadRequestException(errors);
     }
 
+    const requestMethod = req.method.toUpperCase();
 
-    const baseUrl = params[0];
-    console.log(baseUrl);
-    return data;
+    let methodFound = false;
+    for (const [method, methodConfig] of Object.entries(data.routes)) {
+      if (method.toUpperCase() != requestMethod) {
+        continue;
+      }
+      methodFound = true;
+      if (!(methodConfig instanceof Array)) {
+        Logger.error(
+          `Invalid data type for method config. expected Array. found ${typeof methodConfig}`,
+          new Error().stack,
+        );
+        throw new InternalServerErrorException();
+      }
+
+      const extendedPath = params['0'] as string;
+      for (const pathConfig of methodConfig) {
+        if (typeof pathConfig == 'string') {
+          const routePath = path.join(data.apiRoutePrefix, pathConfig);
+          console.log(`${extendedPath} routePath:${routePath}`);
+          const locationRegexp = pathToRegexp(`${routePath}`, [], {
+            sensitive: false,
+            strict: false,
+            end: true,
+          });
+          const matches = locationRegexp.exec(`/${extendedPath}`);
+          console.log(`matches ${matches}`);
+          if (!matches) {
+            continue;
+          }
+
+          continue;
+        }
+        if (pathConfig instanceof PostApi) {
+        }
+      }
+      throw new NotFoundException(
+        `The requested entity was not found in the current location: ${extendedPath}`,
+      );
+    }
+
+    if (!methodFound) {
+      throw new MethodNotAllowedException();
+    }
+
+    return params;
   }
 }
