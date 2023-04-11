@@ -1,31 +1,24 @@
 import { HttpService } from '@nestjs/axios';
 import {
-  Logger,
-  BadRequestException,
-  Controller,
-  Param,
   All,
-  Body,
   Req,
-  MethodNotAllowedException,
+  Body,
+  Param,
+  Logger,
+  Controller,
   NotFoundException,
+  BadRequestException,
+  MethodNotAllowedException,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { normalizePath } from '@nestjs/common/utils/shared.utils';
-import { AppService } from './app.service';
-import {
-  ApiConfig,
-  MockApiConfig,
-  NotificationMethod,
-  PostApi,
-} from './services/configuration';
+import { AppService, MockApiConfig, PostApi } from './app.service';
 import { getRawFile } from './utils/get-raw-file';
-import type { Request } from 'express';
 import { pathToRegexp } from 'path-to-regexp';
 import * as path from 'path';
-import { config } from 'process';
 import { getSubRecordFromRoot } from './utils/util';
 import axios from 'axios';
+import type { Request } from 'express';
 
 const configFileName = '.mockapi.yml';
 const gitApiHost = 'https://api.github.com';
@@ -66,7 +59,7 @@ export class AppController {
       throw new BadRequestException(configErrors);
     }
 
-    const { errors, data: configData } = ApiConfig.loadConfig(rawFile);
+    const { errors, data: configData } = this.appService.loadConfig(rawFile);
     if (errors.length > 0) {
       throw new BadRequestException(errors);
     }
@@ -176,9 +169,9 @@ export class AppController {
             const endPoint = requestBody[
               notificationConfig.followProp
             ] as string;
-            let url;
+            let url: string;
             try {
-              url = new URL(endPoint);
+              url = new URL(endPoint).toString();
             } catch (e) {
               throw new BadRequestException(
                 `Invalid url '${endPoint}' provided`,
@@ -187,12 +180,15 @@ export class AppController {
             setTimeout(async () => {
               axios.request({
                 method: notificationConfig.notificationMethod ?? 'GET',
-                url: url.toString(),
+                url: url,
                 timeout: 5000, // The request will abort after 5 sec.
                 data: !notificationConfig.postDataPath
                   ? null
                   : await getRequestedData(
-                      path.join(configData.apiRoutePrefix, notificationConfig.postDataPath),
+                      path.join(
+                        configData.apiRoutePrefix,
+                        notificationConfig.postDataPath,
+                      ),
                       configData,
                       repoRootUrl1,
                       repoRootUrl2,
