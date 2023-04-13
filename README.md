@@ -2,72 +2,71 @@
   <img src="https://raw.githubusercontent.com/Tadjaur/mockapi/main/assets/logo.png" width="200" alt="Mock Api Logo" />
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
+<p align="center">
+<span> An other open source api for mocking json data with a bonus of end point notification.</span>
 </p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Serve Data
+##### **Note: only public github repository is supported**
 
-## Installation
+Mockapi use the file '.mockapi.yml' from your repository
+as a configuration file.
 
-```bash
-$ pnpm install
+
+| Property     | Type     | Mandatory | Description                                     | Default        |
+| :----------- | :------- | :-------- | :---------------------------------------------- | :------------- |
+| `dbFile`     | `string` | Optional  | The database file location. _e.g: public/raw.json_| db.json      |
+| `dbDataPath` | `string` | Optional  | The root path to serve inside the databse file. _e.g: /data_ | / |
+| `apiRoutePrefix` | `string` | Optional | The global prefix of the api. _e.g: /apiV1_  | /api           |
+| `routes`     | `RouteConfig` | Optional | The routing configuration.  | **GET:** Accept:all / **POST:** Reject:all |
+| `version`    | `string` | Required  | The version of the configuration. **Curent: 0.0.1** |
+
+#### Describe `RouteConfig`
+##### **Note: We use [path-to-regExp:6.2.1](https://github.com/pillarjs/path-to-regexp/tree/v6.2.1) to validate expression.**
+| Property     | Type     | Mandatory | Description                                     | 
+| :----------- | :------- | :-------- | :---------------------------------------------- | 
+| `post` | `PostApi[]` | Optional  | The list of route configuration for post request. |
+| `get`  | `string[]`  | Optional  | The list of get route regExp to authorize.  |
+
+#### Describe `PostApi`
+
+| Property     | Type     | Mandatory | Description                                     | 
+| :----------- | :------- | :-------- | :---------------------------------------------- | 
+| `path`       | `string` | Required  | The path expression for the desired route       |
+| `scheduleNotification` | `PostNotification`  | Optional  | The a notification configuration if the current end point have to notify server _like payment end point_.  |
+| `bodyFields`    | `Record<string, boolean>`  | Optional  | Decribe the body of incoming request. It's a record of authorized field name as key and mandatory as value.  |
+| `restrictedBody` | `boolean`  | Optional  | Restrict body to the defined body field. Default: false |
+
+#### Describe `PostNotification`
+
+| Property     | Type     | Mandatory | Description                                     | 
+| :----------- | :------- | :-------- | :---------------------------------------------- | 
+| `followProp` | `string` | Required  | The body field of the incoming request which contain the url to notify       |
+| `timeoutInSecond` | `number` | Optional |  The delay before sending notification to the provided url. Default: 60  |
+| `notificationMethod`    | enum {'POST', 'GET'}  | Optional  | The method to use to notify the end point provided in the value of `followProp`. Default: GET  |
+| `postDataPath` | `string`  | Optional  | The database path to the notification data. Used only when the `notificationMethod` is 'POST'. |
+
+##### Note: When `notificationMethod` is POST `postDataPath` is defined and the desired data wasn't found in the database, null body will be posted to the notificationMethod.
+
+
+
+## API Reference
+
+Once the database created, The base path of your end point would be `https:mockapi.taurs.dev/:GITHUB_OWNER_ID/:REPO_NAME/:BRANCH_NAME`
+
+#### E.g: Get List of predefined user.
+
+```sh
+  GET https://mockapi.taurs.dev/tadjaur/mockapi/main/api-1/user # api-1 here is the defined route prefix.
+```
+#### E.g: Get The first user of predefined users.
+
+```sh
+  GET https://mockapi.taurs.dev/tadjaur/mockapi/main/api-1/user/0
 ```
 
-## Running the app
 
-```bash
-# development
-$ pnpm run start
+## Acknowledgements
 
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
-```
-
-## Test
-
-```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+ - [jsonplaceholder](jsonplaceholder.typicode.com/)
