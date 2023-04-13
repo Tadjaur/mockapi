@@ -12,7 +12,7 @@ export async function getRawFile(
   for (const { url, urlConfig } of params) {
     count++;
     try {
-      const response = await axios.get(url, urlConfig);
+      const response = await axios.get(url, {...urlConfig, responseType: 'text'});
 
       return { rawData: response.data };
     } catch (err) {
@@ -25,6 +25,7 @@ export async function getRawFile(
         };
         Logger.error(`${count}> Failed to retrieve raw data from ${url}`, error);
         errors.push(error);
+        continue;
       }
       throw err;
     }

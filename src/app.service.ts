@@ -134,6 +134,8 @@ class RouteConfig {
   @ArrayUnique()
   @IsArray()
   @IsOptional()
+  @Type(()=> String)
+  @Transform(({value}) => value || [])
   get?: string[];
 }
 

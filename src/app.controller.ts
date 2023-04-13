@@ -10,6 +10,7 @@ import {
   BadRequestException,
   MethodNotAllowedException,
   InternalServerErrorException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import * as yaml from 'js-yaml';
 import { normalizePath } from '@nestjs/common/utils/shared.utils';
@@ -32,34 +33,22 @@ export class AppController {
     private readonly httpService: HttpService,
   ) {}
 
-  @All(':githubId/:repository/:branch/*')
+  @All(':githubId/:repository/*')
   async getRepoPage(
     @Param() params: Record<string, unknown>,
     @Body() requestBody: Record<string, unknown>,
     @Req() req: Request,
   ): Promise<unknown> {
-    const repoRootUrl1 = `${gitRowHost}/${params.githubId}/${params.repository}/${params.branch}`;
-    const repoRootUrl2 = `${gitApiHost}/repos/${params.githubId}/${params.repository}/contents`;
+    const repoRootUrl1 = `${gitRowHost}/${params.githubId}/${params.repository}/main`;
+    const repoRootUrl2 = `${gitRowHost}/${params.githubId}/${params.repository}/master`;
+    const repoRootUrl3 = `${gitRowHost}/${params.githubId}/${params.repository}/dev`;
 
-    const { errors: configErrors, rawData } = await getRawFile([
+    const { rawData } = await getRawFile([
       { url: `${repoRootUrl1}/${configFileName}`, urlConfig: {} },
-      {
-        url: `${repoRootUrl2}/${configFileName}`,
-        urlConfig: {
-          headers: {
-            Accept: 'application/vnd.github.raw',
-          },
-        },
-      },
+      { url: `${repoRootUrl2}/${configFileName}`, urlConfig: {} },
+      { url: `${repoRootUrl3}/${configFileName}`, urlConfig: {} },
     ]);
     let rawFile = rawData;
-    if (configErrors) {
-      Logger.error(
-        `> Failed to retrieve raw data from ${gitRowHost}.`,
-        configErrors,
-      );
-      throw new BadRequestException(configErrors);
-    }
 
     const { errors, data: configData } = this.appService.loadConfig(rawFile);
     if (errors.length > 0) {
@@ -101,8 +90,14 @@ export class AppController {
             configData,
             repoRootUrl1,
             repoRootUrl2,
+            repoRootUrl3,
           );
-          if (!requestedData) {
+          if (requestedData === undefined) {
+            throw new UnprocessableEntityException(
+              `No database found. Please makde sure you have a database named ${configData.dbFile} in your github repository root path of master, dev or main branch`,
+            );
+          }
+          if (requestedData === null) {
             throw new NotFoundException();
           }
           return requestedData;
@@ -157,8 +152,14 @@ export class AppController {
             configData,
             repoRootUrl1,
             repoRootUrl2,
+            repoRootUrl3,
           );
-          if (!requestedData) {
+          if (requestedData === undefined) {
+            throw new UnprocessableEntityException(
+              `No database found. Please makde sure you have a database named ${configData.dbFile} in your github repository root path of master, dev or main branch`,
+            );
+          }
+          if (requestedData === null) {
             throw new NotFoundException('Response Mock not found');
           }
 
@@ -194,6 +195,7 @@ export class AppController {
                       configData,
                       repoRootUrl1,
                       repoRootUrl2,
+                      repoRootUrl3,
                     ),
               });
             }, (notificationConfig.timeoutInSecond ?? defaultNotificationTimeout) * 1000);
@@ -202,12 +204,14 @@ export class AppController {
         }
       }
       throw new NotFoundException(
-        `The requested entity was not found in the current location: ${extendedPath}`,
+        `The requested entity was not found in the current location: ${extendedPath}. Make sure you defined that path in your fake database. For advanced configuration create a config file named .mockapi.yml configuration in your root directory`,
       );
     }
 
     if (!methodFound) {
-      throw new MethodNotAllowedException();
+      throw new MethodNotAllowedException(
+        'Make sure you defined that method in your fake database. For advanced configuration create a config file .mockapi.yml configuration in your root directory',
+      );
     }
 
     return params;
@@ -217,8 +221,8 @@ export class AppController {
     extendedPath: string,
     configData: MockApiConfig,
     repoRootUrl1: string,
-    repoRootUrl2: string,
-  ): Promise<Record<string, unknown> | null> {
+    ...repoRootUrls: string[]
+  ): Promise<Record<string, unknown> | null | undefined> {
     console.log(configData.apiRoutePrefix);
     const dbPath = normalizePath(
       path.join(
@@ -241,20 +245,18 @@ export class AppController {
         url: path.join(`${repoRootUrl1}`, `${configData.dbFile}`),
         urlConfig: {},
       },
-      {
-        url: path.join(`${repoRootUrl2}`, `${configData.dbFile}`),
-        urlConfig: {
-          headers: {
-            Accept: 'application/vnd.github.raw',
-          },
-        },
-      },
+      ...repoRootUrls.map((url) => ({
+        url: path.join(`${url}`, `${configData.dbFile}`),
+        urlConfig: {},
+      })),
     ]);
     if (configErrors) {
-      return null;
+      return undefined;
     }
-    const data = path.extname(configData.dbFile).toLowerCase() == '.json' ?
-    JSON.parse(rawData) : yaml.load(rawData);
+    const data =
+      path.extname(configData.dbFile).toLowerCase() == '.json'
+        ? JSON.parse(rawData)
+        : yaml.load(rawData);
     return getSubRecordFromRoot(dbPath, data);
   }
 }
