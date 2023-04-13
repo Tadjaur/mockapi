@@ -11,6 +11,7 @@ import {
   MethodNotAllowedException,
   InternalServerErrorException,
 } from '@nestjs/common';
+import * as yaml from 'js-yaml';
 import { normalizePath } from '@nestjs/common/utils/shared.utils';
 import { AppService, MockApiConfig, PostApi } from './app.service';
 import { getRawFile } from './utils/get-raw-file';
@@ -251,6 +252,8 @@ export class AppController {
     if (configErrors) {
       return null;
     }
-    return getSubRecordFromRoot(dbPath, JSON.parse(rawData));
+    const data = path.extname(configData.dbFile).toLowerCase() == '.json' ?
+    JSON.parse(rawData) : yaml.load(rawData);
+    return getSubRecordFromRoot(dbPath, data);
   }
 }
