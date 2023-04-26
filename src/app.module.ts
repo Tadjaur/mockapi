@@ -9,10 +9,10 @@ import { APP_GUARD } from '@nestjs/core';
 @Module({
   imports: [
     HttpModule,
-    // Set the limit to 1 request per second on each entry point.
+    // Set the limit to 10 requests per second on each entry point.
     ThrottlerModule.forRoot({
       ttl: 1,
-      limit: 1,
+      limit: 10,
     }),
   ],
   controllers: [AppController],
