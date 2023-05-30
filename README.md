@@ -53,19 +53,24 @@ as a configuration file.
 
 ## API Reference
 
-Once the database created, The base path of your end point would be `https:mockapi.taurs.dev/:GITHUB_OWNER_ID/:REPO_NAME/:BRANCH_NAME`
+Once the database created, The base path of your end point would be `https:mockapi.taurs.dev/:GITHUB_OWNER_ID/:REPO_NAME`
+
+**Note: _Your main branch should be one of ['main', 'dev', 'master']_**
 
 #### E.g: Get List of predefined user.
 
 ```sh
-  GET https://mockapi.taurs.dev/tadjaur/mockapi/main/api-1/user # api-1 here is the defined route prefix.
+  GET https://mockapi.taurs.dev/tadjaur/mockapi/api-1/user # api-1 here is the defined route prefix.
 ```
 #### E.g: Get The first user of predefined users.
 
 ```sh
-  GET https://mockapi.taurs.dev/tadjaur/mockapi/main/api-1/user/0
+  GET https://mockapi.taurs.dev/tadjaur/mockapi/api-1/user/0
 ```
+## Usages
 
+- [cinetpay_payment_apis](https://github.com/karibu-cap/cinetpay_payment_apis) : Use mockapi as the developement environment of the [cinetpay](https://cinetpay.com) payment api.
+- [orange_money_apis](https://github.com/karibu-cap/orange_money_apis) : Use mockapi the simulate the developement environment for the OM Api.
 
 ## Acknowledgements
 
