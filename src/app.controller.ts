@@ -92,13 +92,10 @@ export class AppController {
             repoRootUrl2,
             repoRootUrl3,
           );
-          if (requestedData === undefined) {
+          if (requestedData === undefined || requestedData === null ) {
             throw new UnprocessableEntityException(
               `No database found. Please makde sure you have a database named ${configData.dbFile} in your github repository root path of master, dev or main branch`,
             );
-          }
-          if (requestedData === null) {
-            throw new NotFoundException();
           }
           return requestedData;
         }
@@ -222,7 +219,7 @@ export class AppController {
     configData: MockApiConfig,
     repoRootUrl1: string,
     ...repoRootUrls: string[]
-  ): Promise<Record<string, unknown> | null | undefined> {
+  ): Promise<unknown | undefined> {
     console.log(configData.apiRoutePrefix);
     const dbPath = normalizePath(
       path.join(
