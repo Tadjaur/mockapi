@@ -1,4 +1,4 @@
-export function getSubRecordFromRoot(path: string, data: Record<string, unknown>): Record<string, unknown> | null{
+export function getSubRecordFromRoot(path: string, data: Record<string, unknown>): unknown {
     const pathSegments = path.replace(/\//g, ' ').trim().split(' ')
     console.log('path, data', path, pathSegments, data);
     let segment = data;
