@@ -3,11 +3,12 @@ export function getSubRecordFromRoot(path: string, data: Record<string, unknown>
     console.log('path, data', path, pathSegments, data);
     let segment = data;
     for(const segmentName of pathSegments) {
-        if(typeof segment[segmentName] == "object"){
-            segment = segment[segmentName] as Record<string,unknown>;
+        const segmentData = segment[segmentName];
+        if(typeof segmentData == "object"){
+            segment = segmentData as Record<string,unknown>;
             continue;
         }
-        return null;
+        return segmentData;
     }
     return segment;
 }
